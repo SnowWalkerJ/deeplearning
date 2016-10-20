@@ -1,0 +1,5 @@
+*.pyc
+*/data/
+data/
+cat-dog/data/
+mnist/data
