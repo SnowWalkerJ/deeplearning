@@ -1,5 +1,7 @@
 *.pyc
+.idea/
 */data/
 data/
 cat-dog/data/
+cat-dog/saves/
 mnist/data
