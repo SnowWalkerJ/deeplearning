@@ -3,7 +3,7 @@ from net import Model
 
 
 if __name__ == '__main__':
-    data = LazyImageData('data', lambda name: 1 if name.split('.')[0] == 'cat' else 0)
+    data = LazyImageData('data/train', lambda name: 1 if name.split('.')[0] == 'cat' else 0)
     data.set_crop((300, 300))
     model = Model()
     placeholders = {
