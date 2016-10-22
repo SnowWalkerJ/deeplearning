@@ -1,10 +1,11 @@
-from tf_learn.utils.data_utils import LazyImageData
+from tf_learn.utils.data_utils import LazyImageData, BigData
 from net import Model
 
 
 if __name__ == '__main__':
-    data = LazyImageData('data/train', lambda name: 1 if name.split('.')[0] == 'cat' else 0)
-    data.set_crop((300, 300))
+    data = BigData('dump')
+    # data = LazyImageData('data/train', lambda name: 1 if name.split('.')[0] == 'cat' else 0)
+    # data.set_crop((300, 300))
     model = Model()
     placeholders = {
         'keep_prob': {
@@ -12,5 +13,5 @@ if __name__ == '__main__':
             'evaluate': 1.0,
         },
     }
-    model.train(data, batch_size=32, placeholders=placeholders, validate=0.01, save_name='saves/model1')
+    model.train(data, batch_size=64, placeholders=placeholders, validate=0.01, save_name='saves/model1')
 
