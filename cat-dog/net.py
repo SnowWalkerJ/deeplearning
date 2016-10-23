@@ -5,6 +5,14 @@ import tf_learn.models, tf_learn.models.dnn, tf_learn.layers
 
 class Model(tf_learn.models.dnn.DNN):
     def build_net(self):
+        self.placeholders = {
+            'keep_prob': {
+                'train': 0.5,
+                'evaluate': 1.0,
+            },
+            'lr': 1e-2
+        }
+
         self.input_tensor = tf.placeholder(tf.int8, [None, 300, 300, 3], name="input")
         cast_float = (tf.cast(self.input_tensor, tf.float32) - 128.0) / 128
         conv1 = tf_learn.layers.conv2d(cast_float, depth=16, filter_size=3, strides=1, activation='relu')
@@ -17,15 +25,16 @@ class Model(tf_learn.models.dnn.DNN):
         pool4 = tf.nn.max_pool(conv4, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
         lrn = tf.nn.local_response_normalization(pool4, name='local_response_normalization')
         flattened = tf_learn.layers.flatten(lrn, name='flatten')
-        fc1 = tf_learn.layers.fully_connection(flattened, 1024, activation='tanh', name='fc1')
+        fc1 = tf_learn.layers.fully_connection(flattened, 1024 * 2, activation='tanh', name='fc1')
         keep_prob = self.register_placeholder('keep_prob', shape=None, dtype=tf.float32)
+        lr = self.register_placeholder('lr', shape=None, dtype=tf.float32)
         dropped1 = tf.nn.dropout(fc1, keep_prob, name='dropout1')
-        fc2 = tf_learn.layers.fully_connection(dropped1, 4096, activation='tanh', name='fc2')
+        fc2 = tf_learn.layers.fully_connection(dropped1, 1024 * 4, activation='tanh', name='fc2')
         self.output_tensor = tf_learn.layers.fully_connection(fc2, 2, activation='linear', name='output_tensor')
         self.target_tensor = tf.placeholder(tf.int32, [None], name='target_tensor')
         self.one_hot_labels = tf.one_hot(self.target_tensor, 2, name='one_hot_labels')
         self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.output_tensor, self.one_hot_labels, name='cross_entropy'))
-        self.train_op = tf.train.AdamOptimizer().minimize(self.loss)
+        self.train_op = tf.train.AdamOptimizer(lr).minimize(self.loss)
         acc = tf.reduce_mean(tf.cast(tf.equal(self.target_tensor, tf.cast(tf.argmax(self.output_tensor, 1), tf.int32)), tf.float32), name='accuracy')
         self.evaluation_dict = {
             'loss': self.loss,
@@ -34,6 +43,14 @@ class Model(tf_learn.models.dnn.DNN):
         tf.scalar_summary('accuracy', acc)
         tf.scalar_summary('loss', self.loss)
         self.summary = tf.merge_all_summaries()
+
+    def on_train_finish_epoch(self):
+        if self.placeholders['lr'] < 1e-4:
+            self.placeholders['lr'] *= 0.9
+        else:
+            self.placeholders['lr'] *= 0.8
+
+
 
 
 
