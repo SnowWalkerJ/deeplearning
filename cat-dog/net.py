@@ -42,6 +42,7 @@ class Model(tf_learn.models.dnn.DNN):
         }
         tf.scalar_summary('accuracy', acc)
         tf.scalar_summary('loss', self.loss)
+        tf.scalar_summary('learning rate', lr)
         self.summary = tf.merge_all_summaries()
 
     def on_train_finish_epoch(self):
