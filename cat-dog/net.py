@@ -24,7 +24,7 @@ class Model(tf_learn.models.dnn.DNN):
         self.output_tensor = tf_learn.layers.fully_connection(fc2, 2, activation='linear', name='output_tensor')
         self.target_tensor = tf.placeholder(tf.int32, [None], name='target_tensor')
         self.one_hot_labels = tf.one_hot(self.target_tensor, 2, name='one_hot_labels')
-        self.loss = tf.nn.softmax_cross_entropy_with_logits(self.output_tensor, self.one_hot_labels, name='cross_entropy')
+        self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.output_tensor, self.one_hot_labels, name='cross_entropy'))
         self.train_op = tf.train.AdamOptimizer().minimize(self.loss)
         acc = tf.reduce_mean(tf.cast(tf.equal(self.target_tensor, tf.cast(tf.argmax(self.output_tensor, 1), tf.int32)), tf.float32), name='accuracy')
         self.evaluation_dict = {
