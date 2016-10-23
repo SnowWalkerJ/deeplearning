@@ -1,6 +1,7 @@
 import tensorflow as tf
-import tf_learn as learn
-import tf_learn.models, tf_learn.models.dnn, tf_learn.layers
+import tf_learn.models
+import tf_learn.models.dnn
+import tf_learn.layers
 
 
 class Model(tf_learn.models.dnn.DNN):
@@ -16,7 +17,8 @@ class Model(tf_learn.models.dnn.DNN):
         lr = self.register_placeholder('lr', shape=None, dtype=tf.float32)
 
         self.input_tensor = tf.placeholder(tf.int8, [None, 300, 300, 3], name="input")
-        cast_float = (tf.cast(self.input_tensor, tf.float32) - 128.0) / 128
+        with tf.name_scope('normalization'):
+            cast_float = (tf.cast(self.input_tensor, tf.float32) - 128.0) / 128.0
         with tf.name_scope('layer1'):
             conv1 = tf_learn.layers.conv2d(cast_float, depth=8, filter_size=3, strides=1, activation='relu')
             lrn1 = tf.nn.local_response_normalization(conv1, name='local_response_normalization1')
@@ -40,11 +42,14 @@ class Model(tf_learn.models.dnn.DNN):
             pool4 = tf.nn.max_pool(stack4, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
         """
         flattened = tf_learn.layers.flatten(pool3, name='flatten')
-        fc1 = tf_learn.layers.fully_connection(flattened, 1024 * 2, activation='tanh', name='fc1')
+        dropped0 = tf.nn.dropout(flattened, keep_prob)
+        fc1 = tf_learn.layers.fully_connection(dropped0, 1024 * 2, activation='tanh', name='fc1')
+        """
         dropped1 = tf.nn.dropout(fc1, keep_prob, name='dropout1')
         fc2 = tf_learn.layers.fully_connection(dropped1, 1024 * 8, activation='tanh', name='fc2')
         dropped2 = tf.nn.dropout(fc2, keep_prob, name='dropout2')
-        self.output_tensor = tf_learn.layers.fully_connection(dropped2, 2, activation='linear', name='output_tensor')
+        """
+        self.output_tensor = tf_learn.layers.fully_connection(fc1, 2, activation='linear', name='output_tensor')
         self.target_tensor = tf.placeholder(tf.int32, [None], name='target_tensor')
         self.one_hot_labels = tf.one_hot(self.target_tensor, 2, name='one_hot_labels')
         with tf.name_scope('loss'):
