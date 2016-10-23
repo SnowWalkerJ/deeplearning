@@ -10,7 +10,7 @@ class Model(tf_learn.models.dnn.DNN):
                 'train': 0.5,
                 'evaluate': 1.0,
             },
-            'lr': 1e-1
+            'lr': 1.0
         }
         keep_prob = self.register_placeholder('keep_prob', shape=None, dtype=tf.float32)
         lr = self.register_placeholder('lr', shape=None, dtype=tf.float32)
@@ -47,9 +47,13 @@ class Model(tf_learn.models.dnn.DNN):
         self.output_tensor = tf_learn.layers.fully_connection(dropped2, 2, activation='linear', name='output_tensor')
         self.target_tensor = tf.placeholder(tf.int32, [None], name='target_tensor')
         self.one_hot_labels = tf.one_hot(self.target_tensor, 2, name='one_hot_labels')
-        self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.output_tensor, self.one_hot_labels, name='cross_entropy'))
+        with tf.name_scope('loss'):
+            self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.output_tensor, self.one_hot_labels, name='cross_entropy'))
         self.train_op = tf.train.AdamOptimizer(lr).minimize(self.loss)
-        acc = tf.reduce_mean(tf.cast(tf.equal(self.target_tensor, tf.cast(tf.argmax(self.output_tensor, 1), tf.int32)), tf.float32), name='accuracy')
+        acc = tf.reduce_mean(tf.cast(tf.equal(self.target_tensor,
+                                              tf.cast(tf.argmax(self.output_tensor, 1), tf.int32)),
+                                     tf.float32),
+                             name='accuracy')
         self.evaluation_dict = {
             'loss': self.loss,
             'acc': acc,
@@ -58,6 +62,7 @@ class Model(tf_learn.models.dnn.DNN):
         tf.scalar_summary('loss', self.loss)
         tf.scalar_summary('learning rate', lr)
         tf.histogram_summary('fc1_weight', fc1.W)
+        tf.histogram_summary('conv1_weight', conv1.W)
         self.summary = tf.merge_all_summaries()
 
     def on_train_finish_epoch(self):
