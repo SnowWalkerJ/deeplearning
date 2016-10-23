@@ -3,7 +3,8 @@ from net import Model
 import os
 
 
-logdir = 'logs'
+logdir = 'model1'
+n_epoch = 128
 
 if __name__ == '__main__':
     data = BigData('dump')
@@ -18,5 +19,5 @@ if __name__ == '__main__':
             'evaluate': 1.0,
         },
     }
-    model.train(data, batch_size=64, placeholders=placeholders, validate=0.01, save_name='saves/model1')
+    model.train(data, n_epoch=n_epoch, batch_size=64, placeholders=placeholders, validate=0.01, save_name='saves/model1')
 
