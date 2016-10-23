@@ -31,5 +31,9 @@ class Model(tf_learn.models.dnn.DNN):
             'loss': self.loss,
             'acc': acc,
         }
+        tf.scalar_summary('accuracy', acc)
+        tf.scalar_summary('loss', self.loss)
+        self.summary = tf.merge_all_summaries()
+
 
 
