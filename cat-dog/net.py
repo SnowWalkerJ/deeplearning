@@ -7,7 +7,7 @@ class Model(tf_learn.models.dnn.DNN):
     def build_net(self):
         self.placeholders = {
             'keep_prob': {
-                'train': 0.5,
+                'train': 0.9,
                 'evaluate': 1.0,
             },
             'lr': 1.0
