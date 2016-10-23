@@ -2,10 +2,11 @@ import tensorflow as tf
 import tf_learn as learn
 import tf_learn.models, tf_learn.models.dnn, tf_learn.layers
 
+
 class Model(tf_learn.models.dnn.DNN):
     def build_net(self):
         self.input_tensor = tf.placeholder(tf.int8, [None, 300, 300, 3], name="input")
-        cast_float = tf.cast(self.input_tensor, tf.float32)
+        cast_float = (tf.cast(self.input_tensor, tf.float32) - 128.0) / 128
         conv1 = tf_learn.layers.conv2d(cast_float, depth=16, filter_size=3, strides=1, activation='relu')
         pool1 = tf.nn.max_pool(conv1, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
         conv2 = tf_learn.layers.conv2d(pool1, depth=32, filter_size=3, strides=1, activation='relu')
