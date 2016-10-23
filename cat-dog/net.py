@@ -75,7 +75,7 @@ class Model(tf_learn.models.dnn.DNN):
             self.placeholders['lr'] *= 0.9
         else:
             self.placeholders['lr'] *= 0.7
-        self.run_summary(self.epoch + 1, self.evaluate_placeholders)
+        self.run_summary(self.epoch + 1)
 
 
 
