@@ -9,7 +9,7 @@ class Model(tf_learn.models.dnn.DNN):
         self.placeholders = {
             'keep_prob': {
                 'train': 0.5,
-                'evaluate': 1.0,
+                'evaluate': 0.8,
             },
             'lr': 1.0
         }
@@ -20,36 +20,36 @@ class Model(tf_learn.models.dnn.DNN):
         with tf.name_scope('normalization'):
             cast_float = (tf.cast(self.input_tensor, tf.float32) - 128.0) / 128.0
         with tf.name_scope('layer1'):
-            conv1 = tf_learn.layers.conv2d(cast_float, depth=8, filter_size=3, strides=1, activation='relu')
+            conv1 = tf_learn.layers.conv2d(cast_float, depth=4, filter_size=3, strides=1, activation='relu', name='3x3x4')
             lrn1 = tf.nn.local_response_normalization(conv1, name='local_response_normalization1')
-            stack1 = tf.concat(3, [cast_float, lrn1], name='stack1')
+            conv11 = tf_learn.layers.conv2d(lrn1, depth=8, filter_size=1, strides=1, activation='relu', name='1x1x8')
+            stack1 = tf.concat(3, [cast_float, conv11], name='stack1')
             pool1 = tf.nn.max_pool(stack1, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
         with tf.name_scope('layer2'):
-            conv2 = tf_learn.layers.conv2d(pool1, depth=32, filter_size=3, strides=1, activation='relu')
+            conv2 = tf_learn.layers.conv2d(pool1, depth=16, filter_size=3, strides=1, activation='relu', name='3x3x16')
             lrn2 = tf.nn.local_response_normalization(conv2, name='local_response_normalization2')
-            stack2 = tf.concat(3, [pool1, lrn2], name='stack2')
+            conv21 = tf_learn.layers.conv2d(lrn2, depth=32, filter_size=1, strides=1, activation='relu', name='1x1x32')
+            stack2 = tf.concat(3, [pool1, conv21], name='stack2')
             pool2 = tf.nn.max_pool(stack2, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
         with tf.name_scope('layer3'):
-            conv3 = tf_learn.layers.conv2d(pool2, depth=128, filter_size=3, strides=1, activation='relu')
+            conv3 = tf_learn.layers.conv2d(pool2, depth=64, filter_size=3, strides=1, activation='relu', name='3x3x64')
             lrn3 = tf.nn.local_response_normalization(conv3, name='local_response_normalization3')
-            stack3 = tf.concat(3, [pool2, lrn3], name='stack3')
+            conv31 = tf_learn.layers.conv2d(lrn3, depth=128, filter_size=1, strides=1, activation='relu', name='1x1x128')
+            stack3 = tf.concat(3, [pool2, conv31], name='stack3')
             pool3 = tf.nn.max_pool(stack3, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
-        """
         with tf.name_scope('layer4'):
-            conv4 = tf_learn.layers.conv2d(pool3, depth=512, filter_size=3, strides=1, activation='relu')
+            conv4 = tf_learn.layers.conv2d(pool3, depth=256, filter_size=3, strides=1, activation='relu', name='3x3x256')
             lrn4 = tf.nn.local_response_normalization(conv4, name='local_response_normalization4')
-            stack4 = tf.concat(3, [pool3, lrn4], name='stack4')
+            conv41 = tf_learn.layers.conv2d(lrn4, depth=512, filter_size=1, strides=1, activation='relu', name='1x1x512')
+            stack4 = tf.concat(3, [pool3, conv41], name='stack4')
             pool4 = tf.nn.max_pool(stack4, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
-        """
-        flattened = tf_learn.layers.flatten(pool3, name='flatten')
+        flattened = tf_learn.layers.flatten(pool4, name='flatten')
         dropped0 = tf.nn.dropout(flattened, keep_prob)
         fc1 = tf_learn.layers.fully_connection(dropped0, 1024 * 2, activation='tanh', name='fc1')
-        """
         dropped1 = tf.nn.dropout(fc1, keep_prob, name='dropout1')
-        fc2 = tf_learn.layers.fully_connection(dropped1, 1024 * 8, activation='tanh', name='fc2')
+        fc2 = tf_learn.layers.fully_connection(dropped1, 1024 * 4, activation='tanh', name='fc2')
         dropped2 = tf.nn.dropout(fc2, keep_prob, name='dropout2')
-        """
-        self.output_tensor = tf_learn.layers.fully_connection(fc1, 2, activation='linear', name='output_tensor')
+        self.output_tensor = tf_learn.layers.fully_connection(dropped2, 2, activation='linear', name='output_tensor')
         self.target_tensor = tf.placeholder(tf.int32, [None], name='target_tensor')
         self.one_hot_labels = tf.one_hot(self.target_tensor, 2, name='one_hot_labels')
         with tf.name_scope('loss'):
@@ -75,6 +75,7 @@ class Model(tf_learn.models.dnn.DNN):
             self.placeholders['lr'] *= 0.9
         else:
             self.placeholders['lr'] *= 0.7
+        self.run_summary(self.epoch + 1, self.evaluate_placeholders)
 
 
 
