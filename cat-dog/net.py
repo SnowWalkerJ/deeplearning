@@ -57,24 +57,25 @@ class Model(tf_learn.models.dnn.DNN):
         dropped2 = tf.nn.dropout(fc2, keep_prob, name='dropout2')
         self.output_tensor = tf_learn.layers.fully_connection(dropped2, 2, activation='softmax', name='output_tensor')
         self.target_tensor = tf.placeholder(tf.int32, [None], name='target_tensor')
-        self.one_hot_labels = tf.one_hot(self.target_tensor, 2, name='one_hot_labels')
+        with tf.name_scope('one_hot'):
+            self.one_hot_labels = tf.one_hot(self.target_tensor, 2, name='one_hot_labels')
         with tf.name_scope('loss'):
-            self.loss = tf.reduce_mean(-tf.reduce_sum(tf.matmul(tf.log(self.output_tensor), self.one_hot_labels),
-                                                      reduction_indices=[1], name='cross_entropy'))
+            self.loss = tf.reduce_mean(-tf.reduce_sum(tf.log(self.output_tensor) * self.one_hot_labels, reduction_indices=[1]))
         self.train_op = tf.train.AdamOptimizer(lr).minimize(self.loss)
-        acc = tf.reduce_mean(tf.cast(tf.equal(self.target_tensor,
-                                              tf.cast(tf.argmax(self.output_tensor, 1), tf.int32)),
-                                     tf.float32),
-                             name='accuracy')
+        with tf.name_scope('accuracy'):
+            acc = tf.reduce_mean(tf.cast(tf.equal(self.target_tensor,
+                                                  tf.cast(tf.argmax(self.output_tensor, 1), tf.int32)),
+                                         tf.float32),
+                                 name='accuracy')
         self.evaluation_dict = {
             'loss': self.loss,
             'acc': acc,
         }
         tf.scalar_summary('accuracy', acc)
         tf.scalar_summary('loss', self.loss)
-        tf.scalar_summary('learning rate', lr)
         tf.histogram_summary('fc1_weight', fc1.W)
         tf.histogram_summary('conv1_weight', conv1.W)
+        tf.histogram_summary('conv4.weight', conv4.W)
         self.summary = tf.merge_all_summaries()
 
     def on_train_finish_epoch(self):
@@ -82,7 +83,8 @@ class Model(tf_learn.models.dnn.DNN):
             self.placeholders['lr'] *= 0.9
 
 
-
+    def on_before_train(self):
+        self.run_summary(0)
 
 
 

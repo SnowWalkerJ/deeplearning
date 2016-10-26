@@ -5,4 +5,5 @@ data/
 cat-dog/data/
 cat-dog/saves/
 cat-dog/dump/
+cat-dog/logs/
 mnist/data
