@@ -1,7 +1,7 @@
 from tf_learn.utils.data_utils import BigData, LazyImageData
 
 
-images = LazyImageData('data/train', lambda name: 1 if name.split('.')[0] == 'cat' else 0)
+images = LazyImageData('data/train', lambda name: 1 if name.startswith('cat') else 0)
 images.set_crop((300, 300))
 meta = [
     {'shape': [None]},
