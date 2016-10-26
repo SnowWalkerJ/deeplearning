@@ -44,7 +44,7 @@ class Model(tf_learn.models.dnn.DNN):
             stack4 = tf.concat(3, [pool3, conv41], name='stack4')
             pool4 = tf.nn.max_pool(stack4, [1, 2, 2, 1], [1, 2, 2, 1], padding='SAME')
         with tf.name_scope('layer5'):
-            conv5 = tf_learn.layers.conv2d(pool3, depth=512, filter_size=3, strides=1, activation='relu', name='3x3x256')
+            conv5 = tf_learn.layers.conv2d(pool4, depth=512, filter_size=3, strides=1, activation='relu', name='3x3x256')
             lrn5 = tf.nn.local_response_normalization(conv5, name='local_response_normalization4')
             conv51 = tf_learn.layers.conv2d(lrn5, depth=700, filter_size=1, strides=1, activation='relu', name='1x1x512')
             stack5 = tf.concat(3, [pool4, conv51], name='stack4')
@@ -60,7 +60,9 @@ class Model(tf_learn.models.dnn.DNN):
         with tf.name_scope('one_hot'):
             self.one_hot_labels = tf.one_hot(self.target_tensor, 2, name='one_hot_labels')
         with tf.name_scope('loss'):
+            l2_regularizer = tf.contrib.layers.l2_regularizer(0.001)
             self.loss = tf.reduce_mean(-tf.reduce_sum(tf.log(self.output_tensor) * self.one_hot_labels, reduction_indices=[1]))
+            self.loss += tf.contrib.layers.apply_regularization(l2_regularizer, [conv1.W, conv2.W, conv3.W, conv4.W, conv5.W])
         self.train_op = tf.train.AdamOptimizer(lr).minimize(self.loss)
         with tf.name_scope('accuracy'):
             acc = tf.reduce_mean(tf.cast(tf.equal(self.target_tensor,
@@ -74,8 +76,12 @@ class Model(tf_learn.models.dnn.DNN):
         tf.scalar_summary('accuracy', acc)
         tf.scalar_summary('loss', self.loss)
         tf.histogram_summary('fc1_weight', fc1.W)
+        tf.histogram_summary('fc2_weight', fc2.W)
         tf.histogram_summary('conv1_weight', conv1.W)
         tf.histogram_summary('conv4.weight', conv4.W)
+        tf.histogram_summary('conv2_weight', conv2.W)
+        tf.histogram_summary('conv3_weight', conv3.W)
+        tf.histogram_summary('conv5_weight', conv5.W)
         self.summary = tf.merge_all_summaries()
 
     def on_train_finish_epoch(self):
