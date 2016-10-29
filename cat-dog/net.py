@@ -20,7 +20,7 @@ class Model(tf_learn.models.dnn.DNN):
                conv_large = tf_learn.layers.conv2d(conv_large, depth=base_depth, filter_size=[1, 5], strides=1, activation='relu', name='1x5x%d' % base_depth)
                stacks.append(conv_large)
             output_tensor = tf.concat(3, stacks)
-            output_tensor = tf_learn.layers.conv2d(output_tensor, depth=int(base_depth*2/1.5), filter_size=1, strides=1, activation='relu', name='1x1x%d' % int(base_depth*2/1.5)) 
+            output_tensor = tf_learn.layers.conv2d(output_tensor, depth=int(output_tensor.get_shape().as_list()[-1]/1.5), filter_size=1, strides=1, activation='relu', name='1x1x%d' % int(base_depth*2/1.5)) 
         return output_tensor
     
     def build_net(self):
@@ -47,11 +47,11 @@ class Model(tf_learn.models.dnn.DNN):
             net = tf_learn.layers.conv2d(net, depth=64, filter_size=3, strides=1, activation='relu', name='3x3x64')
 
         net = self.inception_layer(net, 'layer1')
-        net = tf.nn.max_pool(net, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME')
+        net = tf.nn.max_pool(net, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
         net = self.inception_layer(net, 'layer2')
-        net = tf.nn.max_pool(net, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME')
+        net = tf.nn.max_pool(net, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
         net = self.inception_layer(net, 'layer3')
-        # net = tf.nn.max_pool(net, [1, 2, 2, 1], [1, 2, 2, 1], 'SAME')
+        net = tf.nn.max_pool(net, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
         net = self.inception_layer(net, 'layer4')
         
         image_size = net.get_shape().as_list()[1]
