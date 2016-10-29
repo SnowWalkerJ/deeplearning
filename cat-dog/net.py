@@ -31,7 +31,6 @@ class Model(tf_learn.models.dnn.DNN):
             },
         }
         self.global_step = tf.Variable(0, trainable=False)
-        keep_prob = self.register_placeholder('keep_prob', shape=None, dtype=tf.float32)
         lr = tf.train.exponential_decay(0.01, self.global_step, 1500, 0.96, staircase=True)
 
         self.input_tensor = tf.placeholder(tf.int8, [None, 300, 300, 3], name="input")
@@ -43,8 +42,7 @@ class Model(tf_learn.models.dnn.DNN):
             net = tf_learn.layers.conv2d(net, depth=32, filter_size=1, strides=1, activation='relu', name='1x1x32', padding='VALID')
             net = tf_learn.layers.conv2d(net, depth=64, filter_size=3, strides=1, activation='relu', name='3x3x64', padding='VALID')
             net = tf.nn.max_pool(net, [1, 2, 2, 1], [1, 2, 2, 1], padding='VALID')
-            net = tf_learn.layers.conv2d(net, depth=64, filter_size=1, strides=1, activation='relu', name='1x1x64')
-            net = tf_learn.layers.conv2d(net, depth=64, filter_size=3, strides=1, activation='relu', name='3x3x64')
+            net = tf_learn.layers.conv2d(net, depth=64, filter_size=3, strides=[1, 2, 2, 1], activation='relu', name='3x3x64')
 
         net = self.inception_layer(net, 'layer1')
         net = tf.nn.max_pool(net, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
