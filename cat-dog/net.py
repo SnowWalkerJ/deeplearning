@@ -7,20 +7,14 @@ import tf_learn.layers
 class Model(tf_learn.models.dnn.DNN):
 
     @staticmethod
-    def inception_layer(input_tensor, name, large=False):
+    def inception_layer(input_tensor, name):
         base_depth = input_tensor.get_shape().as_list()[-1]
         with tf.name_scope(name):
-            conv_left = tf_learn.layers.conv2d(input_tensor, depth=base_depth, filter_size=1, strides=1, activation='relu', name='1x1x%d' % base_depth)
-            conv_right = tf_learn.layers.conv2d(input_tensor, depth=base_depth, filter_size=1, strides=1, activation='relu', name='1x1x%d' % base_depth)
-            conv_right = tf_learn.layers.conv2d(conv_right, depth=base_depth, filter_size=3, strides=1, activation='relu', name='3x3x%d' % base_depth)
-            stacks = [conv_left, conv_right]
-            if large:
-               conv_large = tf_learn.layers.conv2d(input_tensor, depth=base_depth, filter_size=2, strides=1, activation='relu', name='1x1x%d' % base_depth)           
-               conv_large = tf_learn.layers.conv2d(conv_large, depth=base_depth, filter_size=[5, 1], strides=1, activation='relu', name='5x1x%d' % base_depth)
-               conv_large = tf_learn.layers.conv2d(conv_large, depth=base_depth, filter_size=[1, 5], strides=1, activation='relu', name='1x5x%d' % base_depth)
-               stacks.append(conv_large)
+            middle = tf_learn.layers.conv2d(input_tensor, depth=int(base_depth/1.5), filter_size=3, strides=1, activation='relu', name='1x1x%d' % base_depth)
+            middle = tf_learn.layers.conv2d(middle, depth=base_depth, filter_size=1, strides=1, activation='relu', name='3x3x%d' % base_depth)
+            stacks = [input_tensor, middle]
             output_tensor = tf.concat(3, stacks)
-            output_tensor = tf_learn.layers.conv2d(output_tensor, depth=int(output_tensor.get_shape().as_list()[-1]/1.5), filter_size=1, strides=1, activation='relu', name='1x1x%d' % int(base_depth*2/1.5)) 
+            # output_tensor = tf_learn.layers.conv2d(output_tensor, depth=int(output_tensor.get_shape().as_list()[-1]/1.5), filter_size=1, strides=1, activation='relu', name='1x1x%d' % int(base_depth*2/1.5))
         return output_tensor
     
     def build_net(self):
@@ -31,7 +25,7 @@ class Model(tf_learn.models.dnn.DNN):
             },
         }
         self.global_step = tf.Variable(0, trainable=False)
-        lr = tf.train.exponential_decay(0.01, self.global_step, 1500, 0.96, staircase=True)
+        lr = tf.train.exponential_decay(0.005, self.global_step, 1500, 0.96, staircase=True)
 
         self.input_tensor = tf.placeholder(tf.int8, [None, 300, 300, 3], name="input")
         with tf.name_scope('normalization'):
