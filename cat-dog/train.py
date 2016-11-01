@@ -1,8 +1,8 @@
 from tf_learn.utils.data_utils import LazyImageData, BigData
-from net import Model
+from inception import Model
 
 
-logdir = 'model1'
+logdir = 'fakeinception'
 n_epoch = 128
 
 if __name__ == '__main__':
@@ -11,5 +11,5 @@ if __name__ == '__main__':
     # data.set_crop((300, 300))
     model = Model(logdir)
 
-    model.train(data, n_epoch=n_epoch, batch_size=64, validate=0.02, save_name='saves/model1')
+    model.train(data, n_epoch=n_epoch, batch_size=16, validate=0.005, save_name='saves/fakeinception')
 
