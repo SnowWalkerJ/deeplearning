@@ -55,7 +55,7 @@ class Model(tf_learn.models.dnn.DNN):
         net = tf.dropout(net, keep_prob=keep_prob)
         net = tf_learn.layers.fully_connection(net, 2048, 'tanh')
         net = tf.droupout(net, keep_prob)
-        self.output_tensor = tf_learn.layers.fully_connection(net, 2, 'tanh')
+        self.output_tensor = tf_learn.layers.fully_connection(net, 2, activation='linear')
 
         self.target_tensor = tf.placeholder(tf.uint8, [None])
         with tf.name_scope("one_hot"):
@@ -72,7 +72,6 @@ class Model(tf_learn.models.dnn.DNN):
 
     def on_train_finish_batch(self):
         global_step = self.sess.run(tf.assign_add(self.global_step, 1))
-        
         if global_step % 70 == 0:
             self.run_summary(global_step / 70)
 
