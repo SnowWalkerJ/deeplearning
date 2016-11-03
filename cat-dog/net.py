@@ -70,10 +70,11 @@ class Model(tf_learn.models.dnn.DNN):
         tf.scalar_summary('loss', self.loss)
         self.summary = tf.merge_all_summaries()
 
-    def on_train_finish_batch(self):
-        global_step = self.sess.run(tf.assign_add(self.global_step, 1))
-        if global_step % 70 == 0:
-            self.run_summary(global_step / 70)
+    def on_train_finish_epoch(self):
+        if self.epoch % 4:
+            self.placeholders['lr'] *= 0.9
+        step = self.sess.run(tf.assign_add(self.global_step, 1))
+        self.run_summary(step)
 
     def on_before_train(self):
         self.run_summary(0)
