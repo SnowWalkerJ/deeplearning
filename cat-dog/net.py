@@ -13,8 +13,7 @@ class Model(tf_learn.models.dnn.DNN):
                 'evaluate': 1.0,
             },
         }
-        self.global_step = tf.Variable(0, trainable=False)
-        lr = tf.train.exponential_decay(0.005, self.global_step, 1500, 0.96, staircase=True)
+        lr = tf.train.exponential_decay(0.005, self.global_step, 5, 0.96, staircase=True)
         tf.scalar_summary("learning rate", lr)
         keep_prob = self.register_placeholder("keep_prob", None, tf.float32)
 
@@ -71,9 +70,7 @@ class Model(tf_learn.models.dnn.DNN):
         self.summary = tf.merge_all_summaries()
 
     def on_train_finish_epoch(self):
-        if self.epoch % 4:
-            self.placeholders['lr'] *= 0.9
-        step = self.sess.run(tf.assign_add(self.global_step, 1))
+        step = self.sess.run(self.global_step)
         self.run_summary(step)
 
     def on_before_train(self):

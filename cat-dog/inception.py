@@ -105,10 +105,10 @@ class Model(tf_learn.models.dnn.DNN):
                 'train': 0.7,
                 'evaluate': 1.0,
             },
-            'lr': 0.01
         }
         keep_prob = self.register_placeholder('keep_prob', shape=None, dtype=tf.float32)
-        lr = self.register_placeholder('lr', shape=None, dtype=tf.float32)
+        lr = tf.train.exponential_decay(0.001, self.global_step, 5, 0.96, name='learning_rate')
+        tf.scalar_sumaary("learning rate", lr)
 
         self.input_tensor = tf.placeholder(tf.int8, [None, 300, 300, 3], name="input")
         net = (tf.cast(self.input_tensor, tf.float32) - 128.0) / 128.0
@@ -134,14 +134,14 @@ class Model(tf_learn.models.dnn.DNN):
         net = tf.nn.dropout(net, keep_prob, name='dropout')
         self.output_tensor = tf_learn.layers.fully_connection(net, 2, activation='linear', name='output_tensor')
         
-        self.target_tensor = tf.placeholder(tf.int32, [None], name='target_tensor')
+        self.target_tensor = tf.placeholder(tf.int8, [None], name='target_tensor')
         with tf.name_scope('one_hot'):
             self.one_hot_labels = tf.one_hot(self.target_tensor, 2, name='one_hot_labels')
         with tf.name_scope('loss'):
-            # self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.output_tensor, self.one_hot_labels, name='cross_entropy'))
-            self.loss = tf.reduce_mean(-tf.reduce_sum(tf.log(tf.nn.softmax(self.output_tensor)) * self.one_hot_labels, reduction_indices=[1]))
-        # self.train_op = tf.train.AdamOptimizer(lr).minimize(self.loss)
-        self.train_op = tf.train.RMSPropOptimizer(lr, momentum=0.9).minimize(self.loss)
+            self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.output_tensor, self.one_hot_labels, name='cross_entropy'))
+            # self.loss = tf.reduce_mean(-tf.reduce_sum(tf.log(tf.nn.softmax(self.output_tensor)) * self.one_hot_labels, reduction_indices=[1]))
+        self.train_op = tf.train.AdamOptimizer(lr).minimize(self.loss)
+        # self.train_op = tf.train.RMSPropOptimizer(lr, momentum=0.9).minimize(self.loss)
         with tf.name_scope('accuracy'):
             acc = tf.reduce_mean(tf.cast(tf.equal(self.target_tensor,
                                                   tf.cast(tf.argmax(self.output_tensor, 1), tf.int32)),
@@ -156,12 +156,10 @@ class Model(tf_learn.models.dnn.DNN):
         self.summary = tf.merge_all_summaries()
 
     def on_train_finish_epoch(self):
-        if self.epoch % 3 == 0:
-            self.placeholders['lr'] *= 0.96
-        self.run_summary(self.epoch + 1)
+        self.run_summary(self.sess.run(self.global_step))
 
     def on_before_train(self):
-	    self.run_summary(0)
+        self.run_summary(0)
 
 
 
