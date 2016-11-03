@@ -12,5 +12,5 @@ if __name__ == '__main__':
     # data.set_crop((300, 300))
     model = Model(logdir)
 
-    model.train(data, n_epoch=n_epoch, batch_size=16, validate=0.005, save_name='saves/easymodel')
+    model.train(data, n_epoch=n_epoch, batch_size=32, validate=0.005, save_name='saves/easymodel')
 
