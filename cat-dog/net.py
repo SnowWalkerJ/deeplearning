@@ -8,7 +8,7 @@ class Model(tf_learn.models.dnn.DNN):
     def build_net(self):
         self.placeholders = {
             'keep_prob': {
-                'train': 0.7,
+                'train': 0.8,
                 'evaluate': 1.0,
             },
             'lr': 0.001
@@ -18,44 +18,45 @@ class Model(tf_learn.models.dnn.DNN):
 
         self.input_tensor = tf.placeholder(tf.int8, [None, 300, 300, 3], name="input")
         with tf.name_scope('normalization'):
-            net = (tf.cast(self.input_tensor, tf.float32) - 128.0) / 128.0
-        with tf.name_scope("conv1"):
-            net1 = tf_learn.layers.conv2d(net, depth=8, filter_size=1, strides=1, activation='relu')
-            net1 = tf_learn.layers.conv2d(net1, depth=16, filter_size=3, strides=1, activation='relu')
-            tf.histogram_summary('conv1.weight', net1.W)
-            net1 = tf.nn.local_response_normalization(net1)
-            net1 = tf.concat(3, [net, net1])
-            net1 = tf.nn.max_pool(net1, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
-        with tf.name_scope("conv2"):
-            net2 = tf_learn.layers.conv2d(net1, depth=24, filter_size=1, strides=1, activation='relu')
-            net2 = tf_learn.layers.conv2d(net2, depth=32, filter_size=3, strides=1, activation='relu')
-            tf.histogram_summary('conv2.weight', net2.W)
-            net2 = tf.nn.local_response_normalization(net2)
-            net2 = tf.concat(3, [net1, net2])
-            net2 = tf.nn.max_pool(net2, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
-        with tf.name_scope("conv3"):
-            net3 = tf_learn.layers.conv2d(net2, depth=64, filter_size=1, strides=1, activation='relu')
-            net3 = tf_learn.layers.conv2d(net3, depth=64, filter_size=3, strides=1, activation='relu')
-            tf.histogram_summary('conv3.weight', net3.W)
-            net3 = tf.nn.local_response_normalization(net3)
-            net3 = tf.concat(3, [net2, net3])
-            net3 = tf.nn.max_pool(net3, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
-        with tf.name_scope("conv4"):
-            net4 = tf_learn.layers.conv2d(net3, depth=128, filter_size=1, strides=1, activation='relu')
-            net4 = tf_learn.layers.conv2d(net4, depth=128, filter_size=3, strides=1, activation='relu')
-            tf.histogram_summary('conv4.weight', net4.W)
-            net4 = tf.nn.local_response_normalization(net4)
-            net4 = tf.concat(3, [net3, net4])
-            net4 = tf.nn.max_pool(net4, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
-        with tf.name_scope("conv5"):
-            net5 = tf_learn.layers.conv2d(net4, depth=256, filter_size=1, strides=1, activation='relu')
-            net5 = tf_learn.layers.conv2d(net5, depth=256, filter_size=3, strides=1, activation='relu')
-            tf.histogram_summary('conv5.weight', net5.W)
-            net5 = tf.nn.local_response_normalization(net5)
-            net5 = tf.concat(3, [net5, net4])
-            net5 = tf.nn.max_pool(net5, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
+            cast_float = (tf.cast(self.input_tensor, tf.float32) - 128.0) / 128.0
+        with tf.name_scope('layer1'):
+            conv1 = tf_learn.layers.conv2d(cast_float, depth=4, filter_size=3, strides=1, activation='relu', name='3x3x4')
+            conv11 = tf_learn.layers.conv2d(conv1, depth=8, filter_size=1, strides=1, activation='relu', name='1x1x8')
+            lrn1 = tf.nn.local_response_normalization(conv11, name='local_response_normalization1')
+            stack1 = tf.concat(3, [cast_float, lrn1], name='stack1')
 
-        flattened = tf_learn.layers.flatten(net5, name='flatten')
+        with tf.name_scope('layer1.5'):
+            conv15 = tf_learn.layers.conv2d(stack1, depth=12, filter_size=3, strides=1, activation='relu', name='3x3x12')
+            conv115 = tf_learn.layers.conv2d(conv15, depth=16, filter_size=1, strides=1, activation='relu', name='1x1x16')
+            lrn15 = tf.nn.local_response_normalization(conv115, name='local_response_normalization15')
+            pool1 = tf.nn.max_pool(lrn15, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
+
+        with tf.name_scope('layer2'):
+            conv2 = tf_learn.layers.conv2d(pool1, depth=16, filter_size=3, strides=1, activation='relu', name='3x3x16')
+            conv21 = tf_learn.layers.conv2d(conv2, depth=32, filter_size=1, strides=1, activation='relu', name='1x1x32')
+            lrn2 = tf.nn.local_response_normalization(conv21, name='local_response_normalization2')
+            stack2 = tf.concat(3, [pool1, lrn2], name='stack2')
+
+        with tf.name_scope('layer2.5'):
+            # conv25 = tf_learn.layers.conv2d(stack2, depth=48, filter_size=3, strides=1, activation='relu', name='3x3x48')
+            conv251 = tf_learn.layers.conv2d(stack2, depth=64, filter_size=1, strides=1, activation='relu', name='1x1x64')
+            lrn25 = tf.nn.local_response_normalization(conv251)
+            pool2 = tf.nn.max_pool(lrn25, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
+
+        with tf.name_scope('layer3'):
+            conv3 = tf_learn.layers.conv2d(pool2, depth=64, filter_size=3, strides=1, activation='relu', name='3x3x64')
+            lrn3 = tf.nn.local_response_normalization(conv3, name='local_response_normalization3')
+            conv31 = tf_learn.layers.conv2d(lrn3, depth=128, filter_size=1, strides=1, activation='relu', name='1x1x128')
+            stack3 = tf.concat(3, [pool2, conv31], name='stack3')
+            pool3 = tf.nn.max_pool(stack3, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
+        
+        with tf.name_scope('layer4'):
+            conv4 = tf_learn.layers.conv2d(pool3, depth=256, filter_size=3, strides=1, activation='relu', name='3x3x256')
+            lrn4 = tf.nn.local_response_normalization(conv4, name='local_response_normalization4')
+            conv41 = tf_learn.layers.conv2d(lrn4, depth=512, filter_size=1, strides=1, activation='relu', name='1x1x512')
+            stack4 = tf.concat(3, [pool3, conv41], name='stack4')
+            pool4 = tf.nn.max_pool(stack4, [1, 3, 3, 1], [1, 3, 3, 1], padding='SAME')
+        flattened = tf_learn.layers.flatten(pool4, name='flatten')
         dropped0 = tf.nn.dropout(flattened, keep_prob)
         fc1 = tf_learn.layers.fully_connection(dropped0, 1024, activation='tanh', name='fc1')
         dropped1 = tf.nn.dropout(fc1, keep_prob, name='dropout1')
@@ -81,6 +82,12 @@ class Model(tf_learn.models.dnn.DNN):
         }
         tf.scalar_summary('accuracy', acc)
         tf.scalar_summary('loss', self.loss)
+        tf.histogram_summary('fc1_weight', fc1.W)
+        tf.histogram_summary('fc2_weight', fc2.W)
+        tf.histogram_summary('conv1_weight', conv1.W)
+        tf.histogram_summary('conv2_weight', conv2.W)
+        tf.histogram_summary('conv3_weight', conv3.W)
+        tf.histogram_summary('conv4.weight', conv4.W)
         self.summary = tf.merge_all_summaries()
 
     def on_train_finish_epoch(self):
