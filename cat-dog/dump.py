@@ -1,4 +1,4 @@
-from tf_learn.utils.data_utils import BigData, LazyImageData
+from tf_learn.utils.data_utils import NpzData, LazyImageData
 
 
 images = LazyImageData('data/train', lambda name: 1 if name.startswith('cat') else 0)
@@ -7,4 +7,4 @@ meta = [
     {'shape': [None]},
     {'shape': [None, 300, 300, 3]}
 ]
-BigData.dump(images, 'dump', meta)
+NpzData.dump(images, 'dump/data.npz')

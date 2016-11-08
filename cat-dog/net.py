@@ -73,7 +73,7 @@ class Model(tf_learn.models.dnn.DNN):
 
         with tf.name_scope("loss"):
             self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.output_tensor, one_hot_label), name="loss")
-            acc = tf.reduce_mean(tf.to_float(tf.equal(self.target_tensor, tf.argmax(self.output_tensor, 1))))
+            acc = tf.reduce_mean(tf.to_float(tf.equal(self.target_tensor, tf.cast(tf.argmax(self.output_tensor, 1), tf.uint8))))
         self.train_op = tf.train.AdamOptimizer(lr).minimize(self.loss)
 
         tf.scalar_summary('accuracy', acc)
