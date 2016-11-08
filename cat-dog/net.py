@@ -2,7 +2,7 @@ import tensorflow as tf
 import tflearn
 import tf_learn.models
 import tf_learn.models.dnn
-import tf_learn.layers
+# import tf_learn.layers
 
 
 class Model(tf_learn.models.dnn.DNN):
@@ -27,7 +27,7 @@ class Model(tf_learn.models.dnn.DNN):
             tf.histogram_summary("conv1", net1.W)
             net1 = tflearn.conv_2d(net1, 16, 1, activation='relu')
             # net1 = tf_learn.layers.conv2d(net1, depth=16, filter_size=1, strides=1, activation='relu')
-            net1 = tf.nn.local_response_normalization(net1)
+            # net1 = tf.nn.local_response_normalization(net1)
             net1 = tf.concat(3, [net, net1])
             net1 = tf.nn.max_pool(net1, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
         with tf.name_scope("conv2"):
@@ -58,8 +58,7 @@ class Model(tf_learn.models.dnn.DNN):
             net4 = tf.concat(3, [net3, net4])
             net4 = tf.nn.max_pool(net4, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
 
-        net = tf_learn.layers.flatten(net4)
-        net = tflearn.fully_connected(net, 512, activation='tanh')
+        net = tflearn.fully_connected(net4, 512, activation='tanh')
         # net = tf_learn.layers.fully_connection(net, 512, 'tanh')
         net = tf.nn.dropout(net, keep_prob=keep_prob)
         net = tflearn.fully_connected(net, 2048, activation='tanh')
