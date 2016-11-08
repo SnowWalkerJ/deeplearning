@@ -51,9 +51,9 @@ class Model(tf_learn.models.dnn.DNN):
 
         net = tf_learn.layers.flatten(net4)
         net = tf_learn.layers.fully_connection(net, 512, 'tanh')
-        net = tf.dropout(net, keep_prob=keep_prob)
+        net = tf.nn.dropout(net, keep_prob=keep_prob)
         net = tf_learn.layers.fully_connection(net, 2048, 'tanh')
-        net = tf.droupout(net, keep_prob)
+        net = tf.nn.dropout(net, keep_prob)
         self.output_tensor = tf_learn.layers.fully_connection(net, 2, activation='linear')
 
         self.target_tensor = tf.placeholder(tf.uint8, [None])
@@ -62,7 +62,7 @@ class Model(tf_learn.models.dnn.DNN):
 
         with tf.name_scope("loss"):
             self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.output_tensor, one_hot_label), name="loss")
-            acc = tf.reduce_mean(tf.to_float(tf.equal(self.target_tensor, tf.argmax(self.output_tensor))))
+            acc = tf.reduce_mean(tf.to_float(tf.equal(self.target_tensor, tf.cast(tf.argmax(self.output_tensor, 1), tf.uint8))))
         self.train_op = tf.train.AdamOptimizer(lr).minimize(self.loss)
 
         tf.scalar_summary('accuracy', acc)
