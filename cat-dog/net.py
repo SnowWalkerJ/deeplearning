@@ -36,7 +36,7 @@ class Model(tf_learn.models.dnn.DNN):
             tf.histogram_summary("conv2", net2.W)
             net2 = tflearn.conv_2d(net2, 32, 1, activation='relu')
             # net2 = tf_learn.layers.conv2d(net2, depth=32, filter_size=1, strides=1, activation='relu')
-            net2 = tf.nn.local_response_normalization(net2)
+            # net2 = tf.nn.local_response_normalization(net2)
             net2 = tf.concat(3, [net1, net2])
             net2 = tf.nn.max_pool(net2, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
         with tf.name_scope("conv3"):
@@ -45,7 +45,7 @@ class Model(tf_learn.models.dnn.DNN):
             tf.histogram_summary("conv3", net3.W)
             net3 = tflearn.conv_2d(net3, 64, 1, activation='relu')
             # net3 = tf_learn.layers.conv2d(net3, depth=64, filter_size=1, strides=1, activation='relu')
-            net3 = tf.nn.local_response_normalization(net3)
+            # net3 = tf.nn.local_response_normalization(net3)
             net3 = tf.concat(3, [net2, net3])
             net3 = tf.nn.max_pool(net3, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
         with tf.name_scope("conv4"):
@@ -54,7 +54,7 @@ class Model(tf_learn.models.dnn.DNN):
             tf.histogram_summary("conv4", net4.W)
             net4 = tflearn.conv_2d(net4, 128, 1, activation='relu')
             # net4 = tf_learn.layers.conv2d(net4, depth=128, filter_size=1, strides=1, activation='relu')
-            net4 = tf.nn.local_response_normalization(net4)
+            # net4 = tf.nn.local_response_normalization(net4)
             net4 = tf.concat(3, [net3, net4])
             net4 = tf.nn.max_pool(net4, [1, 2, 2, 1], [1, 2, 2, 1], 'VALID')
 
