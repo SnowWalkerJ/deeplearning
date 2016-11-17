@@ -1,5 +1,5 @@
 from keras.applications.inception_v3 import InceptionV3
-from keras.layers.core import Dense
+from keras.layers.core import Dense, Flatten
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import TensorBoard, LearningRateScheduler, ProgbarLogger, ModelCheckpoint, EarlyStopping
@@ -17,7 +17,8 @@ valid_y = to_categorical(valid_y, 2)
 
 base_model = InceptionV3(weights='imagenet', include_top=False)
 x = base_model.output
-x = Dense(2)(x, activation="softmax")
+x = Flatten()(x)
+x = Dense(2, activation="softmax")(x)
 model = Model(input=base_model.input, output=x)
 
 for layer in base_model.layers:
