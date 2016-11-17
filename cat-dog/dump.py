@@ -7,7 +7,7 @@ class Pipe(DataSet):
         self.dataset = dataset
         self.func = func
 
-    @@property
+    @property
     def length(self):
         return self.dataset.length
 
