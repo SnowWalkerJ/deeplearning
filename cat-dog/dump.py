@@ -19,7 +19,7 @@ class Pipe(DataSet):
 
 data = LazyImageData('data/train', lambda name: 1 if name.startswith('cat') else 0)
 # data = NpzData('dump/data.npz')
-# images.set_resize((300, 300))
+data.set_resize((300, 300))
 data.split([0.99])
 NpzData.dump(data[1], 'dump/validate.npz')
 piped = Pipe(data[0], np.fliplr)
