@@ -14,8 +14,7 @@ class Pipe(DataSet):
     def iterate(self, batch_size=1):
         for label, image in self.dataset.iterate(1):
             yield label, image
-            yield label, np.asarray(map(self.func, image[0]))
-
+            yield label, self.func(image[0])
 
 
 data = LazyImageData('data/train', lambda name: 1 if name.startswith('cat') else 0)
@@ -23,6 +22,6 @@ data = LazyImageData('data/train', lambda name: 1 if name.startswith('cat') else
 # images.set_resize((300, 300))
 data.split([0.99])
 NpzData.dump(data[1], 'dump/validate.npz')
-piped = Pipe(data[0], lambda x: np.asarray(list(reversed(x))))
+piped = Pipe(data[0], np.fliplr)
 NpzData.dump(piped, 'dump/train.npz')
 
