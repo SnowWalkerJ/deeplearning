@@ -9,12 +9,12 @@ class Pipe(DataSet):
 
     @property
     def length(self):
-        return self.dataset.length
+        return self.dataset.length * 2
 
     def iterate(self, batch_size=1):
         for label, image in self.dataset.iterate(1):
             yield label, image
-            yield label, self.func(image[0])
+            yield label, self.func(image)
 
 
 data = LazyImageData('data/train', lambda name: 1 if name.startswith('cat') else 0)
