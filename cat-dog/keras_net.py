@@ -3,13 +3,16 @@ from keras.layers.core import Dense
 from keras.models import Model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import TensorBoard, LearningRateScheduler, ProgbarLogger, ModelCheckpoint, EarlyStopping
+from keras.utils.np_utils import to_categorical
 import numpy as np
 
 
 train_data = np.load("dump/train.npz")
 train_y, train_x = train_data['arr_0'], train_data['arr_1']
+train_y = to_categorical(train_y, 2)
 valid_data = np.load("dump/validate.npz")
 valid_y, valid_x = valid_data['arr_0'], valid_data['arr_1']
+valid_y = to_categorical(valid_y, 2)
 
 
 base_model = InceptionV3(weights='imagenet', include_top=False)
