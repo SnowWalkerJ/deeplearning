@@ -7,3 +7,5 @@ cat-dog/saves/
 cat-dog/dump/
 cat-dog/logs/
 mnist/data
+cat-dog/.ipynb_checkpoints/
+*.ipynb
